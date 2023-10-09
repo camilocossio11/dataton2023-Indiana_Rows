@@ -5,6 +5,6 @@ import pandas as pd
 class DataReader():
     def __init__(self, file_path: str) -> None:
         self.file_path = file_path
-    def read_file(self):
-        return pd.read_excel(self.file_path)
+    def read_files(self):
+        return pd.read_excel(self.file_path, sheet_name=None)
 # %%
