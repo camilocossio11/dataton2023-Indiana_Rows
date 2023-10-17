@@ -230,6 +230,7 @@ def main(iterations:int):
 
 # %%
 if __name__=='__main__':
-    best_schedule,best_result,demand,workers,code_time = main(10_000)
+    best_schedule,best_result,demand,workers,code_time = main(5_000)
     df_solution = solution_format(demand, workers, best_schedule)
+    df_solution.to_csv('solucion.csv',index=False)
 # %%
