@@ -31,12 +31,13 @@ def check_breaks(schedule: np.array) -> bool:
 
 def check_lunch_time(schedule: np.array) -> bool:
     try:
-        lunch_blocks = np.where(schedule == 3)
+        lunch_blocks = [i for i, elemento in enumerate(schedule) if elemento == 3]
         lunch_start = lunch_blocks[0]
         if len(lunch_blocks) != 6:
             print('El bloque de almuerzo no es de 1 h y 30 min')
             return False
         elif 17 <= lunch_start <= 25:
+            print('El bloque de almuerzo se encuentra asignado correctamente')
             return True
         else:
             print('El bloque de almuerzo no se encuentra entre el horario permitido para almorzar')
@@ -56,3 +57,5 @@ def check_solution(schedule: np.array) -> bool:
             return False
     except Exception as e:
         print(f'Ocurrio un error: {e}')
+
+# %%
