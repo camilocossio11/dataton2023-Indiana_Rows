@@ -2,18 +2,23 @@ import random
 import pandas as pd
 import numpy as np
 
-def assign_start(n_workers:int)->list:
+def assign_start(lunch_schedule:list)->list:
+    # Find the min and max in lunch schdule to avoid problems with work blocks
+    min_index = lunch_schedule.index(min(lunch_schedule))
+    max_index = lunch_schedule.index(max(lunch_schedule))
     # Assign randomly te start hour
     start_day_schedule = []
-    for i in range(n_workers):
-        start_day_schedule.append(6-random.randint(-6,6))
-    # To make sure that someone is available at the begining and the end of the day:
-    if 0 not in start_day_schedule:
-        index_min = start_day_schedule.index(min(start_day_schedule))
-        start_day_schedule[index_min] = 0
-    if 12 not in start_day_schedule:
-        index_max = start_day_schedule.index(max(start_day_schedule))
-        start_day_schedule[index_max] = 12
+    for i in range(len(lunch_schedule)):
+        dif = lunch_schedule[i] - 4
+        upper_bound = min(dif, 15)
+        # Make sure that someone is available at the begining of the day:
+        if i == min_index:
+            start_day_schedule.append(0)
+        # Make sure that someone is available at the end of the day:
+        elif i == max_index:
+            start_day_schedule.append(upper_bound)
+        else:
+            start_day_schedule.append(random.randint(0,upper_bound))
     return start_day_schedule
 
 def assign_lunch(demand: pd.DataFrame,n_workers:int)->list:
@@ -128,6 +133,7 @@ def assign_breaks(start_day_schedule:list, lunch_schedule:list, demand:np.array,
                                                 unavailable,
                                                 switch,
                                                 start_day_schedule[i])
+            brk = list(map(lambda x: x + start_day_schedule[i], brk))
             breaks = breaks + brk
         else:
             pass

@@ -12,8 +12,8 @@ def TC_schedule(n_workers,original_demand,iterations):
     }
     for i in range(iterations):
         schedule = pd.DataFrame()
-        start_day_schedule = assign_start(n_workers)
         lunch_schedule = assign_lunch(original_demand, n_workers)
+        start_day_schedule = assign_start(lunch_schedule)
         schedule = create_schedule(start_day_schedule,lunch_schedule,original_demand)
         total_shortfall = calculate_shortfall(schedule,list(original_demand['demanda']))
         if total_shortfall < solution['shortfall']:

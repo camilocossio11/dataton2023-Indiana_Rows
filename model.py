@@ -23,8 +23,8 @@ def main(iterations:int):
     suc_code = 834
     suc_demand_data = sucursal_demand_data_separation(suc_code, demand_data)
     demand_per_day = day_demand_data_separation(suc_demand_data)
-    TC_solution, total_shortfall = final_solution_per_day_TC(demand_per_day[0:5],4)
-    return TC_solution,total_shortfall
+    TC_solution, total_shortfall, final_demands = final_solution_per_day_TC(demand_per_day[0:5],4)
+    return TC_solution, total_shortfall, final_demands
 
 # %%
 if __name__=='__main__':
