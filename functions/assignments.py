@@ -26,7 +26,7 @@ def assign_lunch(demand: pd.DataFrame,n_workers:int)->list:
     # Movile window size (6 stripes = 1.5 hours)
     n = 6
     lunch_schedule = []
-    for i in range(n_workers):
+    for _ in range(n_workers):
         # Compute the sume through moving windows
         lunch_demand['sumatoria_ventana'] = lunch_demand['demanda'][::-1].rolling(window=n).sum()
         lunch_demand['sumatoria_ventana'] = lunch_demand['sumatoria_ventana'][::-1]
@@ -119,8 +119,6 @@ def assign_breaks(start_day_schedule:list, lunch_schedule:list, demand:np.array,
                                                 start_day_schedule[i])
             brk = list(map(lambda x: x + start_day_schedule[i], brk))
             breaks = breaks + brk
-        else:
-            pass
         # Evaluate if there are common elements in after_lunch and ending_day
         if after_lunch & ending_day:
             brk = assign_break_intersection(after_lunch, ending_day, demand, start_day_schedule[i])
@@ -135,8 +133,6 @@ def assign_breaks(start_day_schedule:list, lunch_schedule:list, demand:np.array,
                                                 start_day_schedule[i])
             brk = list(map(lambda x: x + start_day_schedule[i], brk))
             breaks = breaks + brk
-        else:
-            pass
         schedule[i,breaks] = 2
         demand[breaks] = demand[breaks] + 1
     return schedule, demand
