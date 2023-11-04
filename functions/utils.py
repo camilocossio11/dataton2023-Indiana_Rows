@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def create_schedule(start_day_schedule:list, lunch_schedule:list, demand:pd.DataFrame):
+def create_schedule(start_day_schedule:list, lunch_schedule:list, demand:np.array):
     n_workers = len(start_day_schedule)
     schedule = np.zeros((n_workers,len(demand)))
     for i in range(n_workers):
@@ -33,3 +33,20 @@ def calculate_shortfall(matrix, demand):
     # Sum only the positive differences
     total_shortfall = difference[difference > 0].sum()
     return total_shortfall
+
+def total_demand_week(demand_per_day: list)->np.array:
+    # Take the column 'demanda' of each daily demand, from monday to friday and store it
+    # in demands list
+    demands = [demand['demanda'].tolist() for demand in demand_per_day]
+    # Array containing the total demand per stripe (from monday to friday)
+    week_total_demand = np.array([sum(x) for x in zip(*demands)])
+    return week_total_demand
+
+def verify_lunch(start_day_schedule: np.array,lunch_schedule: np.array):
+    dif = lunch_schedule - start_day_schedule
+    not_feasible_idx = np.where(dif < 4)[0]
+    if not_feasible_idx.size == 0:
+        feasible = True
+    else:
+        feasible = False
+    return feasible, not_feasible_idx
