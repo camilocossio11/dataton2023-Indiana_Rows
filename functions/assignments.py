@@ -37,10 +37,11 @@ def assign_start(
     total_demand: np.array,
     n_workers: int,
     work_hours: int,
-    tc: bool
+    tc: bool,
+    lunch_hours: float = 0
 ):
     if tc:
-        work_stripes = work_hours * 4 + 6
+        work_stripes = int(work_hours * 4 + lunch_hours * 4)
     else:
         work_stripes = work_hours * 4
     start_schedule = []

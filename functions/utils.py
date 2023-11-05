@@ -1,17 +1,27 @@
 import pandas as pd
 import numpy as np
 
-def create_schedule(start_day_schedule:list, lunch_schedule:list, demand:np.array):
+
+def create_schedule(start_day_schedule: list, demand: np.array, work_hours: int, tc: bool, week: bool, lunch_schedule: list = None, lunch_hours: float = 0):
+    final_slot = work_hours*4
     n_workers = len(start_day_schedule)
-    schedule = np.zeros((n_workers,len(demand)))
-    for i in range(n_workers):
-        schedule[i,start_day_schedule[i]:lunch_schedule[i]] = 1
-        schedule[i,lunch_schedule[i]:lunch_schedule[i]+6] = 3
-        schedule[i,lunch_schedule[i]+6:start_day_schedule[i]+34] = 1
+    schedule = np.zeros((n_workers, len(demand)))
+    if sat == False and TC == True:
+        final_slot = int(final_slot + lunch_hours*4)
+        for i in range(n_workers):
+            schedule[i, start_day_schedule[i]:lunch_schedule[i]] = 1
+            schedule[i, lunch_schedule[i]:lunch_schedule[i]+6] = 3
+            schedule[i, lunch_schedule[i] +
+                     6:start_day_schedule[i]+final_slot] = 1
+    else:
+        for i in range(n_workers):
+            schedule[i, start_day_schedule[i]:start_day_schedule[i]+final_slot] = 1
     return schedule
 
-def update_demand(demand:np.array, schedule:np.array):
+
+def update_demand(demand: np.array, schedule: np.array):
     return demand - np.sum(schedule.T == 1, axis=1)
+
 
 def calculate_shortfall(matrix, demand):
     """
@@ -25,16 +35,19 @@ def calculate_shortfall(matrix, demand):
     - int: Total shortfall.
     """
     # Ensure that the demand vector length matches the number of columns in the matrix
-    assert matrix.shape[1] == len(demand), "Mismatch between matrix columns and demand vector length."
+    assert matrix.shape[1] == len(
+        demand), "Mismatch between matrix columns and demand vector length."
     # Calculate the number of workers working at each moment of time
-    workers_working = (matrix == 1).sum(axis=0)  # Sum across rows for each column
+    # Sum across rows for each column
+    workers_working = (matrix == 1).sum(axis=0)
     # Calculate the difference between demand and workers working
     difference = demand - workers_working
     # Sum only the positive differences
     total_shortfall = difference[difference > 0].sum()
     return total_shortfall
 
-def total_demand_week(demand_per_day: list)->np.array:
+
+def total_demand_week(demand_per_day: list) -> np.array:
     # Take the column 'demanda' of each daily demand, from monday to friday and store it
     # in demands list
     demands = [demand['demanda'].tolist() for demand in demand_per_day]
@@ -42,7 +55,8 @@ def total_demand_week(demand_per_day: list)->np.array:
     week_total_demand = np.array([sum(x) for x in zip(*demands)])
     return week_total_demand
 
-def verify_lunch(start_day_schedule: np.array,lunch_schedule: np.array):
+
+def verify_lunch(start_day_schedule: np.array, lunch_schedule: np.array):
     dif = lunch_schedule - start_day_schedule
     not_feasible_idx = np.where(dif < 4)[0]
     if not_feasible_idx.size == 0:
@@ -50,3 +64,14 @@ def verify_lunch(start_day_schedule: np.array,lunch_schedule: np.array):
     else:
         feasible = False
     return feasible, not_feasible_idx
+
+
+def verify_start_end(
+        start_day_schedule: np.array,
+        total_demand: np.array,
+        work_hours: int,
+        lunch_hours: float):
+    max_start_day = len(total_demand) - int(work_hours * 4 + lunch_hours * 4)
+    start_of_day = True if 0 in start_day_schedule else False
+    end_of_day = True if max_start_day in start_day_schedule else False
+    return start_of_day, end_of_day
