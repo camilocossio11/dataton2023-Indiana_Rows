@@ -199,4 +199,44 @@ def assign_breaks(start_day_schedule: list, lunch_schedule: list, demand: np.arr
         schedule[i, breaks] = 2
         demand[breaks] = demand[breaks] + 1
     return [schedule, demand]
+
+def assign_breaks_MT(start_day_schedule: list, demand: np.array, schedule: np.array, MT: bool):
+    if MT == True:
+        final_slot = 16
+    else:
+        final_slot = 20
+
+    for i in range(len(start_day_schedule)):
+        breaks = []
+        # Find the slots that cannot change due to the condition that employees must
+        # work minimum 1 hour (4 slots) at the beginning, at the end of the day,
+        # before and after lunch.
+        unavailable = set(
+            list(range(0, 4)) +  # Beginning of the day
+            list(range(final_slot-4, final_slot))  # End of the day
+        )
+        # Find the candidate stripes to be active pause at the beginning of the day and
+        # exclude those that cannot change
+        beginning_day = set(list(range(4, 9))) - unavailable
+        # Find the candidate stripes to be active pause at the end of the day and
+        # exclude those that cannot change
+        ending_day = set(list(range(final_slot-9, final_slot-4))) - unavailable
+        # Evaluate if there are common elements in beginning_day and before_lunch
+        if beginning_day & ending_day:
+            brk = assign_break_intersection(
+                beginning_day, ending_day, demand, start_day_schedule[i])
+            breaks = breaks + [brk]
+        elif beginning_day.union(ending_day):
+            switch = set(list(range(0, final_slot)))
+            brk = assign_break_no_intersection(beginning_day,
+                                               ending_day,
+                                               demand,
+                                               unavailable,
+                                               switch,
+                                               start_day_schedule[i])
+            brk = list(map(lambda x: x + start_day_schedule[i], brk))
+            breaks = breaks + brk
+        schedule[i, breaks] = 2
+        demand[breaks] = demand[breaks] + 1
+    return [schedule, demand]
 # %%

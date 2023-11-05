@@ -12,13 +12,14 @@ def tc_schedule_week(n_workers: int, demand_per_day: list, lunch_hours: float, w
                                                 n_workers=n_workers,
                                                 lunch_hours=lunch_hours,
                                                 start_day_schedule=start_day_schedule)
-    general_schedule = create_schedule(start_day_schedule=start_day_schedule,
-                                       lunch_schedule=lunch_schedule,
-                                       demand=total_demand)
+    general_schedule = create_schedule(start_day_schedule=start_day_schedule, demand=total_demand, work_hours=work_hours, TC=True, sat=False, lunch_schedule=lunch_schedule)
     schedule, total_demand = assign_breaks(start_day_schedule=start_day_schedule,
                                            lunch_schedule=lunch_schedule,
                                            demand=total_demand,
                                            schedule=general_schedule)
+    star_day_schedule_mt = [3,0,5]
+    sch = create_schedule(start_day_schedule=star_day_schedule_mt, demand=total_demand, work_hours=4, TC=False, sat=False, lunch_schedule=lunch_schedule, lunch_hours=1.5)
+    
     total_shortfall = 0
     for demand in demand_per_day:
         total_shortfall += calculate_shortfall(schedule,

@@ -1,13 +1,19 @@
 import pandas as pd
 import numpy as np
 
-def create_schedule(start_day_schedule:list, lunch_schedule:list, demand:np.array):
+def create_schedule(start_day_schedule:list, demand:np.array, work_hours: int, TC: bool, sat: bool, lunch_schedule:list = None, lunch_hours: float = 0):
+    final_slot = work_hours*4
     n_workers = len(start_day_schedule)
     schedule = np.zeros((n_workers,len(demand)))
-    for i in range(n_workers):
-        schedule[i,start_day_schedule[i]:lunch_schedule[i]] = 1
-        schedule[i,lunch_schedule[i]:lunch_schedule[i]+6] = 3
-        schedule[i,lunch_schedule[i]+6:start_day_schedule[i]+34] = 1
+    if sat == False and TC == True:
+        final_slot = int(final_slot + lunch_hours*4)
+        for i in range(n_workers):
+            schedule[i,start_day_schedule[i]:lunch_schedule[i]] = 1
+            schedule[i,lunch_schedule[i]:lunch_schedule[i]+6] = 3
+            schedule[i,lunch_schedule[i]+6:start_day_schedule[i]+final_slot] = 1
+    else:
+        for i in range(n_workers):
+            schedule[i,start_day_schedule[i]:start_day_schedule[i]+final_slot] = 1
     return schedule
 
 def update_demand(demand:np.array, schedule:np.array):
