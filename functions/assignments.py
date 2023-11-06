@@ -1,11 +1,7 @@
-# %%
 import pandas as pd
 import numpy as np
 from functions.utils import verify_lunch
 from numpy.lib.stride_tricks import sliding_window_view
-
-# %%
-
 
 def fix_assign_lunch(
     total_demand: np.array,
@@ -102,12 +98,12 @@ def assign_break_intersection(candidates_1: set, candidates_2: set, demand: np.a
 
 
 def assign_break_no_intersection(
-        candidates_1: set,
-        candidates_2: set,
-        demand: np.array,
-        unavailable: set,
-        switch: set,
-        start_day: int
+    candidates_1: set,
+    candidates_2: set,
+    demand: np.array,
+    unavailable: set,
+    switch: set,
+    start_day: int
 ):
     breaks = []
     keys = list(candidates_1.union(candidates_2))
@@ -135,7 +131,12 @@ def assign_break_no_intersection(
     return breaks
 
 
-def assign_breaks(start_day_schedule: list, lunch_schedule: list, demand: np.array, schedule: np.array):
+def assign_breaks(
+    start_day_schedule:list,
+    lunch_schedule: list,
+    demand: np.array,
+    schedule: np.array
+):
     for i in range(len(start_day_schedule)):
         breaks = []
         aux = lunch_schedule[i]-start_day_schedule[i]
@@ -174,11 +175,11 @@ def assign_breaks(start_day_schedule: list, lunch_schedule: list, demand: np.arr
             switch = set(
                 list(range(0, lunch_schedule[i]-start_day_schedule[i])))
             brk = assign_break_no_intersection(beginning_day,
-                                               before_lunch,
-                                               demand,
-                                               unavailable,
-                                               switch,
-                                               start_day_schedule[i])
+                                                before_lunch,
+                                                demand,
+                                                unavailable,
+                                                switch,
+                                                start_day_schedule[i])
             brk = list(map(lambda x: x + start_day_schedule[i], brk))
             breaks = breaks + brk
         # Evaluate if there are common elements in after_lunch and ending_day
@@ -190,14 +191,54 @@ def assign_breaks(start_day_schedule: list, lunch_schedule: list, demand: np.arr
             switch = set(
                 list(range(lunch_schedule[i]-start_day_schedule[i]+6, 34)))
             brk = assign_break_no_intersection(after_lunch,
-                                               ending_day,
-                                               demand,
-                                               unavailable,
-                                               switch,
-                                               start_day_schedule[i])
+                                                ending_day,
+                                                demand,
+                                                unavailable,
+                                                switch,
+                                                start_day_schedule[i])
             brk = list(map(lambda x: x + start_day_schedule[i], brk))
             breaks = breaks + brk
         schedule[i, breaks] = 2
-        demand[breaks] = demand[breaks] + 1
+        demand[breaks] = demand[breaks] + 5
     return [schedule, demand]
-# %%
+
+def assign_breaks_mt(
+    start_day_schedule:list,
+    demand: np.array,
+    schedule: np.array,
+    work_hours: int
+):
+    final_stripe = work_hours * 4
+    for i in range(len(start_day_schedule)):
+        breaks = []
+        # Find the slots that cannot change due to the condition that employees must
+        # work minimum 1 hour (4 slots) at the beginning, at the end of the day,
+        # before and after lunch.
+        unavailable = set(
+            list(range(0, 4)) +  # Beginning of the day
+            list(range(final_stripe-4, final_stripe))  # End of the day
+        )
+        # Find the candidate stripes to be active pause at the beginning of the day and
+        # exclude those that cannot change
+        beginning_day = set(list(range(4, 9))) - unavailable
+        # Find the candidate stripes to be active pause at the end of the day and
+        # exclude those that cannot change
+        ending_day = set(list(range(final_stripe-9, final_stripe-4))) - unavailable
+        # Evaluate if there are common elements in beginning_day and before_lunch
+        if beginning_day & ending_day:
+            brk = assign_break_intersection(
+                beginning_day, ending_day, demand, start_day_schedule[i])
+            breaks = breaks + [brk]
+        elif beginning_day.union(ending_day):
+            switch = set(list(range(0, final_stripe)))
+            brk = assign_break_no_intersection(beginning_day,
+                                                ending_day,
+                                                demand,
+                                                unavailable,
+                                                switch,
+                                                start_day_schedule[i])
+            brk = list(map(lambda x: x + start_day_schedule[i], brk))
+            breaks = breaks + brk
+        schedule[i, breaks] = 2
+        demand[breaks] = demand[breaks] + 5
+    return [schedule, demand]

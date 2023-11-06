@@ -2,20 +2,28 @@ import pandas as pd
 import numpy as np
 
 
-def create_schedule(start_day_schedule: list, demand: np.array, work_hours: int, tc: bool, week: bool, lunch_schedule: list = None, lunch_hours: float = 0):
-    final_slot = work_hours*4
+def create_schedule(
+        start_day_schedule: list,
+        demand: np.array,
+        work_hours: int,
+        tc: bool,
+        week: bool,
+        lunch_schedule: list = None,
+        lunch_hours: float = 0):
     n_workers = len(start_day_schedule)
     schedule = np.zeros((n_workers, len(demand)))
-    if sat == False and TC == True:
-        final_slot = int(final_slot + lunch_hours*4)
+    if week and tc:
+        work_stripes = int(work_hours * 4)
+        lunch_stripes = int(lunch_hours * 4)
+        total_stripes = work_stripes + lunch_stripes
         for i in range(n_workers):
             schedule[i, start_day_schedule[i]:lunch_schedule[i]] = 1
-            schedule[i, lunch_schedule[i]:lunch_schedule[i]+6] = 3
-            schedule[i, lunch_schedule[i] +
-                     6:start_day_schedule[i]+final_slot] = 1
+            schedule[i, lunch_schedule[i]:lunch_schedule[i] + lunch_stripes] = 3
+            schedule[i, lunch_schedule[i] + lunch_stripes:start_day_schedule[i]+total_stripes] = 1
     else:
+        total_stripes = int(work_hours * 4)
         for i in range(n_workers):
-            schedule[i, start_day_schedule[i]:start_day_schedule[i]+final_slot] = 1
+            schedule[i, start_day_schedule[i]:start_day_schedule[i]+total_stripes] = 1
     return schedule
 
 
