@@ -78,8 +78,12 @@ def verify_start_end(
         start_day_schedule: np.array,
         total_demand: np.array,
         work_hours: int,
-        lunch_hours: float):
-    max_start_day = len(total_demand) - int(work_hours * 4 + lunch_hours * 4)
+        lunch_hours: float = 0,
+        week: bool = True):
+    if week:
+        max_start_day = len(total_demand) - int(work_hours * 4 + lunch_hours * 4)
+    else:
+        max_start_day = len(total_demand) - int(work_hours * 4)
     start_of_day = True if 0 in start_day_schedule else False
     end_of_day = True if max_start_day in start_day_schedule else False
     return start_of_day, end_of_day

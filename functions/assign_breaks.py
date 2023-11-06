@@ -1,101 +1,10 @@
-import pandas as pd
 import numpy as np
-from functions.utils import verify_lunch
-from numpy.lib.stride_tricks import sliding_window_view
-
-def fix_assign_lunch(
-    total_demand: np.array,
-    start_day_schedule: np.array,
-    lunch_schedule: np.array,
-    not_feasible_idx: np.array,
-    lunch_stripes: int,
-    max_end_lunch: int
-):
-    # Restaurar la demanda, dejarla como estaba sin la asignacion del almuerzo
-    for idx in not_feasible_idx:
-        str_lunch = lunch_schedule[idx]
-        total_demand[str_lunch:str_lunch+lunch_stripes] -= 5
-    # Reasignar en los factibles
-    for idx in not_feasible_idx:
-        min_start_lunch = start_day_schedule[idx] + 4
-        candidates = list(range(min_start_lunch, max_end_lunch))
-        lunch_windows = sliding_window_view(
-            total_demand[min_start_lunch:max_end_lunch], lunch_stripes)
-        sum_windows = np.sum(lunch_windows, axis=1)
-        best_idx = np.where(sum_windows == min(sum_windows))[0][0]
-        start_lunch = candidates[best_idx]
-        lunch_schedule[idx] = start_lunch
-        total_demand[start_lunch:start_lunch + lunch_stripes] += 5
-    return [start_lunch, total_demand]
-
-
-def assign_start(
-    total_demand: np.array,
-    n_workers: int,
-    work_hours: int,
-    tc: bool,
-    lunch_hours: float = 0
-):
-    if tc:
-        work_stripes = int(work_hours * 4 + lunch_hours * 4)
-    else:
-        work_stripes = work_hours * 4
-    start_schedule = []
-    for _ in range(n_workers):
-        windows = sliding_window_view(total_demand, work_stripes)
-        assignment = np.array([5]*work_stripes)
-        windows_with_assignment = windows - assignment
-        neg_values = np.sum(windows_with_assignment < 0, axis=1)
-        remaining_hours = np.sum(windows_with_assignment, axis=1)
-        min_neg_vals_idx = np.where(neg_values == min(neg_values))[0]
-        candidates = remaining_hours[min_neg_vals_idx]
-        start_day_idx = np.where(candidates == min(candidates))[0][0]
-        start_day = min_neg_vals_idx[start_day_idx]
-        total_demand[start_day:start_day + work_stripes] -= 5
-        start_schedule.append(start_day)
-    start_schedule = np.sort(start_schedule)
-    return [start_schedule, total_demand]
-
-
-def assign_lunch(
-    total_demand: pd.DataFrame,
-    n_workers: int,
-    lunch_hours: float,
-    start_day_schedule: np.array,
-    min_start_lunch: int = 16,  # Stripe corresponding 11:30
-    max_start_lunch: int = 24  # Stripe corresponding 13:30
-) -> list:
-    lunch_stripes = int(lunch_hours * 4)
-    candidates = list(range(min_start_lunch, max_start_lunch + 1))
-    lunch_schedule = []
-    max_end_lunch = max_start_lunch + lunch_stripes
-    for _ in range(n_workers):
-        lunch_windows = sliding_window_view(
-            total_demand[min_start_lunch:max_end_lunch], lunch_stripes)
-        sum_windows = np.sum(lunch_windows, axis=1)
-        best_idx = np.where(sum_windows == min(sum_windows))[0][0]
-        start_lunch = candidates[best_idx]
-        lunch_schedule.append(start_lunch)
-        total_demand[start_lunch:start_lunch + lunch_stripes] += 5
-    lunch_schedule = np.sort(lunch_schedule)
-    feasible, not_feasible_idx = verify_lunch(start_day_schedule=start_day_schedule,
-                                              lunch_schedule=lunch_schedule)
-    if not feasible:
-        lunch_schedule, total_demand = fix_assign_lunch(total_demand=total_demand,
-                                                        start_day_schedule=start_day_schedule,
-                                                        lunch_schedule=lunch_schedule,
-                                                        not_feasible_idx=not_feasible_idx,
-                                                        lunch_stripes=lunch_stripes,
-                                                        max_end_lunch=max_end_lunch)
-    return [lunch_schedule, total_demand]
-
 
 def assign_break_intersection(candidates_1: set, candidates_2: set, demand: np.array, start_day: int):
     intersection = list(map(lambda x: x + start_day,
                         list(candidates_1 & candidates_2)))
     index = list(demand[intersection]).index(min(list(demand[intersection])))
     return intersection[index]
-
 
 def assign_break_no_intersection(
     candidates_1: set,
@@ -129,7 +38,6 @@ def assign_break_no_intersection(
             else:
                 i += 1
     return breaks
-
 
 def assign_breaks(
     start_day_schedule:list,
@@ -206,7 +114,8 @@ def assign_breaks_mt(
     start_day_schedule:list,
     demand: np.array,
     schedule: np.array,
-    work_hours: int
+    work_hours: int,
+    week: bool = True
 ):
     final_stripe = work_hours * 4
     for i in range(len(start_day_schedule)):
@@ -240,5 +149,8 @@ def assign_breaks_mt(
             brk = list(map(lambda x: x + start_day_schedule[i], brk))
             breaks = breaks + brk
         schedule[i, breaks] = 2
-        demand[breaks] = demand[breaks] + 5
+        if week:
+            demand[breaks] = demand[breaks] + 5
+        else:
+            demand[breaks] = demand[breaks] + 1
     return [schedule, demand]
