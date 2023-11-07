@@ -98,10 +98,18 @@ if __name__ == '__main__':
         'week':4,
         'weekend':4
     }
-    solution_week,solution_weekend,time_execution = initial_solution(suc_code=834,
-                                                                    tc_work_hours=tc_work_hours,
-                                                                    mt_work_hours=mt_work_hours,
-                                                                    lunch_hours=1.5)
+    suc_codes = [60,311,487,569,834]
+    solutions_week = []
+    solutions_weekend = []
+    total_shortfall = 0
+    for suc in suc_codes:
+        solution_week,solution_weekend,time_execution = initial_solution(suc_code=suc,
+                                                                        tc_work_hours=tc_work_hours,
+                                                                        mt_work_hours=mt_work_hours,
+                                                                        lunch_hours=1.5)
+        solutions_week.append(solution_week)
+        solutions_weekend.append(solution_week)
+        total_shortfall += solution_week['total_shortfall'] + solution_weekend['total_shortfall']
     # df_solution = solution_format(demand, workers, best_schedule)
     # df_solution.to_csv('solucion.csv',index=False)
 # %%
