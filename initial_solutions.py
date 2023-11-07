@@ -1,22 +1,17 @@
-# %% Loading libraries
 import pandas as pd
-import random
 import numpy as np
 import os
-import time
 from functions.result_format import solution_format
 from functions.load_data import load_data, load_demand_data, load_workers_data
 from functions.TC_schedule import tc_schedule_week, tc_schedule_weekend
 from functions.MT_schedule import mt_schedule
 from functions.utils import calculate_shortfall
 
-# %%
 def initial_solution(suc_code: int, tc_work_hours: dict, mt_work_hours: dict,lunch_hours: float):
-    start = time.time()
     current_folder = os.path.dirname(os.path.abspath(__file__))
     data = load_data(current_folder,file_name='Dataton 2023 Etapa 2.xlsx')
     demand_per_day = load_demand_data(data=data, suc_code=suc_code)
-    n_tc_workers, n_mt_workers = load_workers_data(data=data,
+    n_tc_workers, n_mt_workers, workers = load_workers_data(data=data,
                                                     suc_code=suc_code)
     # Week
     week_demand = demand_per_day[0:5]
@@ -26,6 +21,10 @@ def initial_solution(suc_code: int, tc_work_hours: dict, mt_work_hours: dict,lun
                                             n_tc_workers=n_tc_workers,
                                             n_mt_workers=n_mt_workers,
                                             week_demand=week_demand)
+    solution_formated_week = solution_format(demand_per_day=week_demand,
+                                            workers=workers,
+                                            schedule=solution_week['schedule'],
+                                            suc_code=suc_code)
     # Weekend
     weekend_demand = np.array(demand_per_day[-1]['demanda'].tolist())
     solution_weekend = initial_solution_weekend(tc_work_hours=tc_work_hours,
@@ -33,9 +32,13 @@ def initial_solution(suc_code: int, tc_work_hours: dict, mt_work_hours: dict,lun
                                                 n_tc_workers=n_tc_workers,
                                                 n_mt_workers=n_mt_workers,
                                                 weekend_demand=weekend_demand)
-    end = time.time()
-    time_execution = end - start
-    return solution_week,solution_weekend,time_execution
+    solution_formated_weekend = solution_format(demand_per_day=[demand_per_day[-1]],
+                                                workers=workers,
+                                                schedule=solution_weekend['schedule'],
+                                                suc_code=suc_code,
+                                                week = False)
+    initial_solution_formated = pd.concat([solution_formated_week, solution_formated_weekend], ignore_index=True)
+    return solution_week,solution_weekend,initial_solution_formated
 
 def initial_solution_week(
     tc_work_hours: dict,
@@ -87,21 +90,3 @@ def initial_solution_weekend(
         'total_shortfall': total_shortfall_weekend
     }
     return solution_weekend
-
-# %%
-if __name__ == '__main__':
-    tc_work_hours = {
-        'week':7,
-        'weekend':5
-    }
-    mt_work_hours = {
-        'week':4,
-        'weekend':4
-    }
-    solution_week,solution_weekend,time_execution = initial_solution(suc_code=834,
-                                                                    tc_work_hours=tc_work_hours,
-                                                                    mt_work_hours=mt_work_hours,
-                                                                    lunch_hours=1.5)
-    # df_solution = solution_format(demand, workers, best_schedule)
-    # df_solution.to_csv('solucion.csv',index=False)
-# %%
