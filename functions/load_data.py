@@ -45,9 +45,10 @@ def load_demand_data(data: dict, suc_code: int):
 
 def load_workers_data(data: dict, suc_code: int):
     workers_data = data['workers']
+    workers = workers_data[workers_data['suc_cod'] == suc_code]
     n_tc_workers = workers_data[workers_data['suc_cod']
                                 == suc_code]['contrato'].value_counts()['TC']
     n_mt_workers = workers_data[workers_data['suc_cod']
                                 == suc_code]['contrato'].value_counts()['MT']
-    return n_tc_workers, n_mt_workers
+    return n_tc_workers, n_mt_workers, workers
 # %%
