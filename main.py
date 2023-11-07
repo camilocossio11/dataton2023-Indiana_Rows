@@ -42,5 +42,5 @@ if __name__ == '__main__':
                                                     mt_work_hours=mt_work_hours,
                                                     suc_codes=suc_codes,
                                                     lunch_hours=lunch_hours,
-                                                    export=True)
+                                                    export=False)
 # %%

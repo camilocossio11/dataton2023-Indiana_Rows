@@ -21,8 +21,6 @@ def sucursal_demand_data_separation(suc_cod, demand_data):
 
 def day_demand_data_separation(suc_demand_data):
     suc_demand_data['fecha'] = [row.date() for row in suc_demand_data['fecha_hora']]
-    #suc_demand_data['hora'] = [row.time() for row in suc_demand_data['fecha_hora']]
-    #del suc_demand_data['fecha_hora']
     demand_per_day = []
     for date, group in suc_demand_data.groupby('fecha'):
         del group['fecha']

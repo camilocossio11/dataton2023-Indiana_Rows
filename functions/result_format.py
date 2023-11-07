@@ -19,7 +19,6 @@ def solution_format(demand_per_day:list, workers:pd.DataFrame, schedule:np.array
         for i in workers['documento']:
             df_aux = df_schedule[[i,'fecha','hora','hora_franja']].rename(columns={i:'estado'})
             df_aux['documento'] = i
-            # df_aux['suc_cod'] = workers[workers['documento'] == i]['suc_cod'].reset_index(drop=True)[0]
             df_aux['suc_cod'] = suc_code
             df_solution = pd.concat([df_solution,df_aux],ignore_index=True)
     return df_solution
